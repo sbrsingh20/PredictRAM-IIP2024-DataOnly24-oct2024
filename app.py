@@ -12,6 +12,7 @@ import streamlit as st
 def load_data():
     iip_data = pd.read_excel('IIP2024.xlsx')
     synthetic_data = pd.read_excel('Synthetic_Industry_Data.xlsx', sheet_name=None)
+    leading_lagging_data = pd.read_excel('leading_lagging_Industry_Data.xlsx', sheet_name=None)
     
     stock_data = {}
     stock_data_folder = 'stockdata'
@@ -32,7 +33,7 @@ def load_data():
             stock_file_path = os.path.join(financial_folder, filename)
             financial_data[stock_name] = pd.read_excel(stock_file_path, sheet_name=None)
     
-    return iip_data, synthetic_data, stock_data, correlation_results, financial_data
+    return iip_data, synthetic_data, leading_lagging_data, stock_data, correlation_results, financial_data
 
 # Function to load user-uploaded data
 @st.cache_data
@@ -41,7 +42,7 @@ def load_uploaded_data(uploaded_file):
         return pd.read_excel(uploaded_file, sheet_name=None)
     return None
 
-iip_data, synthetic_data, stock_data, correlation_results, financial_data = load_data()
+iip_data, synthetic_data, leading_lagging_data, stock_data, correlation_results, financial_data = load_data()
 
 # Streamlit App Interface
 st.title('Adhuniq Industry and Financial Data Prediction')
@@ -70,8 +71,12 @@ scenario = st.sidebar.selectbox('Select Scenario', ['Base Case', 'Best Case', 'W
 # Display Leading and Lagging Indicators
 st.subheader(f"Leading and Lagging Indicators for {selected_industry}")
 
-leading_indicators = synthetic_data[selected_industry].columns if selected_industry in synthetic_data else []
-lagging_indicators = []  # Add specific logic if required for lagging indicators
+if selected_industry in leading_lagging_data:
+    leading_indicators = leading_lagging_data[selected_industry]['Leading']
+    lagging_indicators = leading_lagging_data[selected_industry]['Lagging']
+else:
+    leading_indicators = []
+    lagging_indicators = []
 
 st.write("**Leading Indicators:**")
 st.write(leading_indicators)
@@ -84,16 +89,14 @@ if uploaded_file and selected_industry:
     st.header(f'Industry: {selected_industry}')
 
     # Prepare Data for Modeling
-    def prepare_data(industry, data, iip_data):
-        leading_indicators = data.columns  # Use the columns from the uploaded data
-
-        X = data[leading_indicators].shift(1).dropna()
+    def prepare_data(industry, data, iip_data, indicators):
+        X = data[indicators].shift(1).dropna()
         y = iip_data[industry].loc[X.index] if industry in iip_data.columns else pd.Series()
         return X, y
 
     # Ensure the selected industry is available in the uploaded data
     if selected_industry in user_uploaded_data:
-        X, y = prepare_data(selected_industry, user_uploaded_data[selected_industry], iip_data)
+        X, y = prepare_data(selected_industry, user_uploaded_data[selected_industry], iip_data, leading_indicators)
 
         # Train models
         reg_model = LinearRegression()
