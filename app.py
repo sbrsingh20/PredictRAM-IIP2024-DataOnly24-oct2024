@@ -204,7 +204,19 @@ def get_detailed_interpretation(parameter_name, correlation_interpretation):
             "Strong Negative": (
             )
         },
-       
+        "correlation with Operating Income/Profit": {
+            "Slight Positive": (
+            ),
+            ),
+            "Neutral": (
+            ),
+            "Slight Negative": (
+            ),
+            "Strong Negative": (
+            )
+        },
+        "Strong Negative": (
+            )
     }
     return interpretations.get(parameter_name, {}).get(correlation_interpretation, "No interpretation available.")
 
@@ -387,7 +399,20 @@ if selected_industry:
                                 'correlation with Income/Profit Before Tax',
                                 'correlation with Net Income From Continuing Operation',
                                 'correlation with Net Income Applicable to Common Share',
-                                
+                                'correlation with EPS (Earning Per Share)',
+                                'correlation with Operating Margin',
+                                'correlation with EBITDA Margin',
+                                'correlation with Net Profit Margin',
+                                'Annualized correlation with Total Revenue/Income',
+                                'Annualized correlation with Total Operating Expense',
+                                'Annualized correlation with Operating Income/Profit',
+                                'Annualized correlation with EBITDA',
+                                'Annualized correlation with EBIT',
+                                'Annualized correlation with Income/Profit Before Tax',
+                                'Annualized correlation with Net Income From Continuing Operation',
+                                'Annualized correlation with Net Income',
+                                'Annualized correlation with Net Income Applicable to Common Share',
+                                'Annualized correlation with EPS (Earning Per Share)'
                             ]:
                                 if col in updated_corr_data.columns:
                                     updated_corr_data[f'Interpreted {col}'] = updated_corr_data[col].apply(interpret_correlation)
