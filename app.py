@@ -204,19 +204,7 @@ def get_detailed_interpretation(parameter_name, correlation_interpretation):
             "Strong Negative": (
             )
         },
-        "correlation with Operating Income/Profit": {
-            "Slight Positive": (
-            ),
-            ),
-            "Neutral": (
-            ),
-            "Slight Negative": (
-            ),
-            "Strong Negative": (
-            )
-        },
-        "Strong Negative": (
-            )
+       
     }
     return interpretations.get(parameter_name, {}).get(correlation_interpretation, "No interpretation available.")
 
