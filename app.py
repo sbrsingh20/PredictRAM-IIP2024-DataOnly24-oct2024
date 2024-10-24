@@ -6,7 +6,12 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 import pickle
 
-# Function to load data
+# Load the industry data from an Excel file
+@st.cache_data
+def load_industry_data():
+    return pd.read_excel("IIP2024.xlsx")
+
+# Function to load user data
 @st.cache_data
 def load_user_data(file):
     return pd.read_csv(file)
@@ -33,16 +38,20 @@ def plot_predictions(y, lr_pred, rf_pred):
     return fig
 
 # Streamlit app starts here
-st.title("Industry and Financial Data Prediction with User Data")
+st.title("Industry and Financial Data Prediction")
 st.sidebar.header("Upload Your Data")
 
-# Step 1: Allow user to upload synthetic data
+# Step 1: Load the industry data
+industry_data = load_industry_data()
+st.write("Industry Data Preview:", industry_data.head())
+
+# Step 2: Allow user to upload synthetic data
 synthetic_data_file = st.sidebar.file_uploader("Upload Synthetic Data (CSV)", type=["csv"])
 if synthetic_data_file is not None:
     user_synthetic_data = load_user_data(synthetic_data_file)
     st.write("User Synthetic Data Preview:", user_synthetic_data.head())
 
-    # Step 2: Allow user to select features and target
+    # Step 3: Allow user to select features and target
     features = st.multiselect("Select Features", user_synthetic_data.columns.tolist(), default=user_synthetic_data.columns.tolist()[:-1])
     target = st.selectbox("Select Target Variable", user_synthetic_data.columns.tolist(), index=-1)
 
@@ -50,7 +59,7 @@ if synthetic_data_file is not None:
         # Prepare data
         X, y = prepare_data(user_synthetic_data, features, target)
 
-        # Step 3: Train models
+        # Step 4: Train models
         st.subheader("Training Models")
 
         # Linear Regression Model
@@ -67,11 +76,11 @@ if synthetic_data_file is not None:
         rf_rmse = mean_squared_error(y, rf_pred, squared=False)
         st.write(f"Random Forest RMSE: {rf_rmse:.2f}")
 
-        # Step 4: Plot predictions
+        # Step 5: Plot predictions
         fig = plot_predictions(y, lr_pred, rf_pred)
         st.plotly_chart(fig, use_container_width=True)
 
-        # Step 5: Save trained models for download
+        # Step 6: Save trained models for download
         st.subheader("Download Trained Models")
 
         # Save Linear Regression Model
@@ -86,7 +95,7 @@ if synthetic_data_file is not None:
             pickle.dump(rf_model, f)
         st.download_button("Download Random Forest Model", data=open(rf_model_file, 'rb'), file_name=rf_model_file)
 
-# Step 6: Optionally, allow the user to upload a pre-trained model for prediction
+# Step 7: Optionally, allow the user to upload a pre-trained model for prediction
 st.sidebar.header("Upload Pre-trained Model for Prediction")
 model_file = st.sidebar.file_uploader("Upload Trained Model (Pickle)", type=["pkl"])
 if model_file is not None and synthetic_data_file is not None:
