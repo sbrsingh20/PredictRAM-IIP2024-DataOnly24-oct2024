@@ -170,5 +170,108 @@ if uploaded_file and selected_industry:
         st.write('**Leading Indicators Data:**')
         st.write(latest_leading_indicators_data)
 
+# Stock Selection and Correlation Analysis
+if correlation_results is not None:
+    # Allow multiple stock selection
+    selected_stocks = st.sidebar.multiselect('Select Stocks', correlation_results['Stock Name'].tolist())
+
+    if selected_stocks:
+        # Filter correlation results for selected stocks
+        selected_corr_data = correlation_results[correlation_results['Stock Name'].isin(selected_stocks)]
+        
+        # Initialize a DataFrame to store adjusted correlations
+        all_adjusted_corr_data = []
+
+        for stock in selected_stocks:
+            st.subheader(f'Correlation Analysis with {stock}')
+            
+            # Fetch correlation data for the selected stock
+            stock_correlation_data = selected_corr_data[selected_corr_data['Stock Name'] == stock]
+
+            if not stock_correlation_data.empty:
+                st.write('**Actual Correlation Results:**')
+                st.write(stock_correlation_data)
+
+                # Prepare predicted correlation data
+                st.subheader('Predicted Correlation Analysis')
+
+                industry_mean = y.mean()
+                updated_corr_data = stock_correlation_data.copy()
+                updated_corr_data['Predicted Industry Value'] = adjusted_industry_value
+
+                for col in [
+                    'correlation with Total Revenue/Income',
+                    'correlation with Net Income',
+                    'correlation with Total Operating Expense',
+                    'correlation with Operating Income/Profit',
+                    'correlation with EBITDA',
+                    'correlation with EBIT',
+                    'correlation with Income/Profit Before Tax',
+                    'correlation with Net Income From Continuing Operation',
+                    'correlation with Net Income Applicable to Common Share',
+                    'correlation with EPS (Earning Per Share)',
+                    'correlation with Operating Margin',
+                    'correlation with EBITDA Margin',
+                    'correlation with Net Profit Margin',
+                    'Annualized correlation with Total Revenue/Income',
+                    'Annualized correlation with Total Operating Expense',
+                    'Annualized correlation with Operating Income/Profit',
+                    'Annualized correlation with EBITDA',
+                    'Annualized correlation with EBIT',
+                    'Annualized correlation with Income/Profit Before Tax',
+                    'Annualized correlation with Net Income From Continuing Operation',
+                    'Annualized correlation with Net Income',
+                    'Annualized correlation with Net Income Applicable to Common Share',
+                    'Annualized correlation with EPS (Earning Per Share)'
+                ]:
+                    if col in updated_corr_data.columns:
+                        updated_corr_data[f'Adjusted {col}'] = updated_corr_data.apply(
+                            lambda row: row[col] * (row['Predicted Industry Value'] / industry_mean), axis=1
+                        )
+                
+                all_adjusted_corr_data.append(updated_corr_data)
+            
+        # Combine all adjusted correlation data
+        if all_adjusted_corr_data:
+            combined_corr_data = pd.concat(all_adjusted_corr_data, ignore_index=True)
+
+            st.write('**Predicted Correlation Results:**')
+            st.write(combined_corr_data[['Stock Name', 'Predicted Industry Value'] +
+                                        [col for col in combined_corr_data.columns if 'Adjusted' in col]])
+
+            # Interactive Comparison Chart
+            st.subheader('Interactive Comparison of Actual and Predicted Correlation Results')
+
+            fig = go.Figure()
+            actual_corr_cols = [col for col in correlation_results.columns if 'correlation' in col]
+            predicted_corr_cols = [f'Adjusted {col}' for col in actual_corr_cols if f'Adjusted {col}' in combined_corr_data.columns]
+
+            for col in actual_corr_cols:
+                if col in selected_corr_data.columns:
+                    fig.add_trace(go.Bar(
+                        x=selected_corr_data['Stock Name'],
+                        y=selected_corr_data[col],
+                        name=f'Actual {col}',
+                        marker_color='blue'
+                    ))
+
+            for col in predicted_corr_cols:
+                if col in combined_corr_data.columns:
+                    fig.add_trace(go.Bar(
+                        x=combined_corr_data['Stock Name'],
+                        y=combined_corr_data[col],
+                        name=f'Predicted {col}',
+                        marker_color='orange'
+                    ))
+
+            fig.update_layout(
+                title='Comparison of Actual and Predicted Correlation Results',
+                xaxis_title='Stock',
+                yaxis_title='Correlation Value',
+                barmode='group',
+                hovermode='x unified'
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 else:
     st.info("Please upload an Excel file with Leading Indicators Data.")
