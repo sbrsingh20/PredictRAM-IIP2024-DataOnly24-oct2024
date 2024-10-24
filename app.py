@@ -299,7 +299,6 @@ def get_detailed_interpretation(parameter_name, correlation_interpretation):
                 "* **Strategy for Investors**: Investors should exercise extreme caution with companies showing strong negative correlations in EPS. Reassessing investments, exploring alternative opportunities, and closely monitoring the company's recovery strategies is crucial."
             )
     }
-}
     return interpretations.get(parameter_name, {}).get(correlation_interpretation, "No interpretation available.")
 
 
