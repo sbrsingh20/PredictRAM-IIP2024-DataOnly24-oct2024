@@ -225,7 +225,7 @@ def get_latest_financial_data(stock_name):
         return pd.Series(), pd.Series(), pd.Series()
 
 # Streamlit App Interface
-st.title('Adhuniq Industry and Financial Data Prediction11')
+st.title('Adhuniq Industry and Financial Data Prediction')
 st.sidebar.header('Select Options')
 
 selected_industry = st.sidebar.selectbox(
